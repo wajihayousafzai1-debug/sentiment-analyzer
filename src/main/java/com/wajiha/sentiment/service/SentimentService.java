@@ -1,5 +1,9 @@
 package com.wajiha.sentiment.service;
 
+import edu.stanford.nlp.pipeline.*;
+import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
+import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.util.CoreMap;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.regex.*;
