@@ -1,36 +1,32 @@
 package com.wajiha.sentiment.controller;
 
-import com.wajiha.sentiment.model.SentimentRequest;
-import com.wajiha.sentiment.model.SentimentResult;
 import com.wajiha.sentiment.service.SentimentService;
-import jakarta.annotation.PostConstruct;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/sentiment")
-@CrossOrigin("*")
+@Controller
 public class SentimentController {
 
-    private final SentimentService service;
+    private final SentimentService sentimentService;
 
-    public SentimentController(SentimentService service) {
-        this.service = service;
+    public SentimentController(SentimentService sentimentService) {
+        this.sentimentService = sentimentService;
     }
 
-    @PostConstruct
-    public void init() {
-        System.out.println("🔥 SentimentController LOADED");
+    @GetMapping("/")
+    public String home() {
+        return "index";
     }
 
     @PostMapping("/analyze")
-    public SentimentResult analyze(@RequestBody SentimentRequest request) {
-        return service.analyze(request.getText());
-    }
-
-    @PostMapping("/batch")
-    public List<SentimentResult> batch(@RequestBody List<SentimentRequest> requests) {
-        return requests.stream().map(r -> service.analyze(r.getText())).toList();
+    public String analyze(@RequestParam String text, Model model) {
+        SentimentResult result = sentimentService.analyze(text);
+        model.addAttribute("text", text);
+        model.addAttribute("sentiment", result.sentiment);
+        model.addAttribute("confidence", String.format("%.1f", result.confidence * 100));
+        return "index";
     }
 }
