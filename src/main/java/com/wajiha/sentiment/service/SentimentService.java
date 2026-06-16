@@ -1,53 +1,40 @@
 package com.wajiha.sentiment.service;
 
+import com.wajiha.sentiment.model.SentimentResult;
+import com.wajiha.sentiment.service.pipeline.*;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class SentimentService {
 
+    private final Tokenizer tokenizer = new Tokenizer();
+    private final FeatureExtractor extractor = new FeatureExtractor();
+    private final SentimentScoringEngine engine = new SentimentScoringEngine();
+    private final ConfidenceEstimator estimator = new ConfidenceEstimator();
+
     public SentimentResult analyze(String text) {
-        if (text == null || text.trim().isEmpty()) {
-            return new SentimentResult("Neutral", 0.5);
+
+        if (text == null || text.isBlank()) {
+            return new SentimentResult("Neutral", 0.5, 0);
         }
 
-        String lowerText = text.toLowerCase().trim();
-        int positiveCount = countMatches(lowerText, new String[]{"good", "great", "excellent", "amazing", "love", "happy", "wonderful", "best", "fantastic"});
-        int negativeCount = countMatches(lowerText, new String[]{"bad", "terrible", "awful", "hate", "sad", "worst", "poor", "horrible", "disappointed"});
+        List<String> tokens = tokenizer.tokenize(text);
+        Map<String, Integer> features = extractor.extract(tokens);
 
-        String sentiment;
-        double confidence;
+        double score = engine.computeScore(features);
+        double confidence = estimator.computeConfidence(score);
 
-        if (positiveCount > negativeCount) {
-            sentiment = "Positive";
-            confidence = 0.65 + (positiveCount * 0.08);
-        } else if (negativeCount > positiveCount) {
-            sentiment = "Negative";
-            confidence = 0.65 + (negativeCount * 0.08);
-        } else {
-            sentiment = "Neutral";
-            confidence = 0.5;
-        }
+        String sentiment = classify(score);
 
-        return new SentimentResult(sentiment, Math.min(confidence, 0.98));
+        return new SentimentResult(sentiment, confidence, score);
     }
 
-    private int countMatches(String text, String[] words) {
-        int count = 0;
-        for (String word : words) {
-            if (text.contains(word)) {
-                count++;
-            }
-        }
-        return count;
-    }
-}
-
-class SentimentResult {
-    public final String sentiment;
-    public final double confidence;
-
-    public SentimentResult(String sentiment, double confidence) {
-        this.sentiment = sentiment;
-        this.confidence = confidence;
+    private String classify(double score) {
+        if (score > 1) return "Positive";
+        if (score < -1) return "Negative";
+        return "Neutral";
     }
 }

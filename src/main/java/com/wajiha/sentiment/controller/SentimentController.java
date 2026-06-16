@@ -1,32 +1,29 @@
 package com.wajiha.sentiment.controller;
 
+import com.wajiha.sentiment.model.SentimentRequest;
+import com.wajiha.sentiment.model.SentimentResult;
 import com.wajiha.sentiment.service.SentimentService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/sentiment")
 public class SentimentController {
 
-    private final SentimentService sentimentService;
+    private final SentimentService service;
 
-    public SentimentController(SentimentService sentimentService) {
-        this.sentimentService = sentimentService;
-    }
-
-    @GetMapping("/")
-    public String home() {
-        return "index";
+    public SentimentController(SentimentService service) {
+        this.service = service;
     }
 
     @PostMapping("/analyze")
-    public String analyze(@RequestParam String text, Model model) {
-        SentimentResult result = sentimentService.analyze(text);
-        model.addAttribute("text", text);
-        model.addAttribute("sentiment", result.sentiment);
-        model.addAttribute("confidence", String.format("%.1f", result.confidence * 100));
-        return "index";
+    public SentimentResult analyze(@RequestBody SentimentRequest request) {
+        return service.analyze(request.getText());
+    }
+
+    @PostMapping("/batch")
+    public List<SentimentResult> batch(@RequestBody List<SentimentRequest> requests) {
+        return requests.stream().map(r -> service.analyze(r.getText())).toList();
     }
 }
