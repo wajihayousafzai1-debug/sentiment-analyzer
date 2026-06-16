@@ -1,5 +1,6 @@
 package com.wajiha.sentiment.controller;
 
+import com.wajiha.sentiment.service.SentimentResult;
 import com.wajiha.sentiment.service.SentimentService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
