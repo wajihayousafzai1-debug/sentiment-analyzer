@@ -3,18 +3,25 @@ package com.wajiha.sentiment.controller;
 import com.wajiha.sentiment.model.SentimentRequest;
 import com.wajiha.sentiment.model.SentimentResult;
 import com.wajiha.sentiment.service.SentimentService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/sentiment")
+@CrossOrigin("*")
 public class SentimentController {
 
     private final SentimentService service;
 
     public SentimentController(SentimentService service) {
         this.service = service;
+    }
+
+    @PostConstruct
+    public void init() {
+        System.out.println("🔥 SentimentController LOADED");
     }
 
     @PostMapping("/analyze")
