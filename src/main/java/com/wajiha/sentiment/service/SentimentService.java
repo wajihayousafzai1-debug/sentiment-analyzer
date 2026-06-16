@@ -41,13 +41,3 @@ public class SentimentService {
         return count;
     }
 }
-
-class SentimentResult {
-    public final String sentiment;
-    public final double confidence;
-
-    public SentimentResult(String sentiment, double confidence) {
-        this.sentiment = sentiment;
-        this.confidence = confidence;
-    }
-}
