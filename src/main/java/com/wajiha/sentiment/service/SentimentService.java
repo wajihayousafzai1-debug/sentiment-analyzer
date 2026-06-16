@@ -1,43 +1,56 @@
 package com.wajiha.sentiment.service;
 
+import edu.stanford.nlp.pipeline.*;
+import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
+import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.util.CoreMap;
 import org.springframework.stereotype.Service;
+import java.util.Properties;
 
 @Service
 public class SentimentService {
+
+    private final StanfordCoreNLP pipeline;
+
+    public SentimentService() {
+        Properties props = new Properties();
+        props.setProperty("annotators", "tokenize, ssplit, parse, sentiment");
+        this.pipeline = new StanfordCoreNLP(props);
+    }
 
     public SentimentResult analyze(String text) {
         if (text == null || text.trim().isEmpty()) {
             return new SentimentResult("Neutral", 0.5);
         }
 
-        String lowerText = text.toLowerCase().trim();
-        int positiveCount = countMatches(lowerText, new String[]{"good", "great", "excellent", "amazing", "love", "happy", "wonderful", "best", "fantastic"});
-        int negativeCount = countMatches(lowerText, new String[]{"bad", "terrible", "awful", "hate", "sad", "worst", "poor", "horrible", "disappointed"});
+        // Create and annotate document
+        CoreDocument document = new CoreDocument(text);
+        pipeline.annotate(document);
 
-        String sentiment;
-        double confidence;
+        int totalSentiment = 0;
+        int sentenceCount = 0;
 
-        if (positiveCount > negativeCount) {
-            sentiment = "Positive";
-            confidence = 0.65 + (positiveCount * 0.08);
-        } else if (negativeCount > positiveCount) {
-            sentiment = "Negative";
-            confidence = 0.65 + (negativeCount * 0.08);
+        for (CoreSentence sentence : document.sentences()) {
+            Tree sentimentTree = sentence.sentimentTree();  // or use CoreMap way below if needed
+            int sentiment = RNNCoreAnnotations.getPredictedClass(sentimentTree);
+            
+            totalSentiment += sentiment;  // 0=very negative ... 4=very positive
+            sentenceCount++;
+        }
+
+        double avgSentiment = sentenceCount > 0 ? (double) totalSentiment / sentenceCount : 2.0;
+
+        String sentimentLabel;
+        double confidence = 0.75 + (Math.abs(avgSentiment - 2.0) * 0.12);  // slightly tuned
+
+        if (avgSentiment >= 3.0) {
+            sentimentLabel = "Positive";
+        } else if (avgSentiment <= 1.0) {
+            sentimentLabel = "Negative";
         } else {
-            sentiment = "Neutral";
-            confidence = 0.5;
+            sentimentLabel = "Neutral";
         }
 
-        return new SentimentResult(sentiment, Math.min(confidence, 0.98));
-    }
-
-    private int countMatches(String text, String[] words) {
-        int count = 0;
-        for (String word : words) {
-            if (text.contains(word)) {
-                count++;
-            }
-        }
-        return count;
+        return new SentimentResult(sentimentLabel, Math.min(confidence, 0.98));
     }
 }
