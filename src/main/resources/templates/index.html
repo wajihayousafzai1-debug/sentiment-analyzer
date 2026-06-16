@@ -3,83 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Sentiment Analyzer - Wajiha Khan</title>
+    <title>AI Sentiment Analyzer — Wajiha Khan</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #0f172a, #1e2937);
+            background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%);
             color: #e2e8f0;
             min-height: 100vh;
             padding: 40px 20px;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        h1 {
-            color: #60a5fa;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            color: #94a3b8;
-            margin-bottom: 40px;
-        }
+        .container { max-width: 860px; margin: 0 auto; }
+
+        /* ── Header ── */
+        .header { text-align: center; margin-bottom: 2.5rem; }
+        .header h1 { color: #60a5fa; font-size: 2.2rem; margin-bottom: 6px; }
+        .header .sub { color: #64748b; font-size: 0.9rem; }
+        .header .sub a { color: #3b82f6; text-decoration: none; }
+        .header .sub a:hover { text-decoration: underline; }
+
+        /* ── Engine badges ── */
+        .engine-badges { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 1rem 0 2rem; }
+        .ebadge { background: #1e3a8a; color: #93c5fd; border: 1px solid #3b82f6; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; }
+
+        /* ── Form ── */
+        .form-card { background: #1e2937; border: 1px solid #334155; border-radius: 14px; padding: 2rem; margin-bottom: 2rem; }
         textarea {
-            width: 100%;
-            height: 160px;
-            padding: 20px;
-            background: #1e2937;
-            color: white;
-            border: 2px solid #334155;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            resize: vertical;
+            width: 100%; height: 150px; padding: 16px;
+            background: #0f172a; color: #e2e8f0;
+            border: 1.5px solid #334155; border-radius: 10px;
+            font-size: 1rem; font-family: inherit; resize: vertical;
+            transition: border-color 0.2s;
         }
-        button {
-            margin-top: 20px;
-            padding: 14px 40px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: 0.3s;
+        textarea:focus { outline: none; border-color: #3b82f6; }
+        .examples { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+        .ex-btn {
+            background: #0f172a; border: 1px solid #334155; color: #94a3b8;
+            padding: 5px 12px; border-radius: 6px; font-size: 0.8rem;
+            cursor: pointer; font-family: inherit; transition: all 0.2s;
         }
-        button:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
+        .ex-btn:hover { border-color: #3b82f6; color: #60a5fa; }
+        .submit-btn {
+            width: 100%; margin-top: 14px; padding: 14px;
+            background: #3b82f6; color: white; border: none;
+            border-radius: 8px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; font-family: inherit; transition: all 0.2s;
         }
-        .result {
-            margin-top: 40px;
-            padding: 30px;
-            background: #1e2937;
-            border-radius: 12px;
-            border-left: 6px solid #22c55e;
+        .submit-btn:hover { background: #2563eb; transform: translateY(-1px); }
+
+        /* ── Result card ── */
+        .result-card {
+            background: #1e2937; border-radius: 14px; border: 1px solid #334155;
+            overflow: hidden; margin-bottom: 2rem;
+            border-top: 4px solid #334155;
         }
-        .positive { border-left-color: #22c55e; }
-        .negative { border-left-color: #ef4444; }
-        .neutral { border-left-color: #eab308; }
+        .result-card.positive { border-top-color: #22c55e; }
+        .result-card.negative { border-top-color: #ef4444; }
+        .result-card.neutral  { border-top-color: #eab308; }
+
+        .result-top { padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+        .result-emoji { font-size: 3.5rem; line-height: 1; }
+        .result-main { flex: 1; }
+        .result-sentiment { font-size: 1.8rem; font-weight: 700; margin-bottom: 2px; }
+        .positive .result-sentiment { color: #22c55e; }
+        .negative .result-sentiment { color: #ef4444; }
+        .neutral  .result-sentiment { color: #eab308; }
+        .result-intensity { font-size: 0.85rem; color: #64748b; }
+
+        /* ── Confidence bar ── */
+        .conf-section { padding: 0 2rem 1.5rem; }
+        .conf-label { font-size: 0.82rem; color: #64748b; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .conf-bar-wrap { background: #0f172a; border-radius: 99px; height: 10px; overflow: hidden; }
+        .conf-bar { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+        .positive .conf-bar { background: linear-gradient(90deg, #16a34a, #22c55e); }
+        .negative .conf-bar { background: linear-gradient(90deg, #dc2626, #ef4444); }
+        .neutral  .conf-bar { background: linear-gradient(90deg, #ca8a04, #eab308); }
+
+        /* ── Signal grid ── */
+        .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #334155; }
+        .signal-cell { background: #1e2937; padding: 1rem 2rem; }
+        .signal-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+        .signal-val { font-size: 1.3rem; font-weight: 600; color: #e2e8f0; }
+        .signal-val.pos { color: #22c55e; }
+        .signal-val.neg { color: #ef4444; }
+
+        /* ── Reasoning ── */
+        .reasoning-section { padding: 1.2rem 2rem; border-top: 1px solid #334155; }
+        .reasoning-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+        .reasoning-text { font-size: 0.85rem; color: #94a3b8; line-height: 1.6; background: #0f172a; border-radius: 8px; padding: 10px 14px; border-left: 3px solid #334155; }
+
+        /* ── Input text display ── */
+        .input-section { padding: 1.2rem 2rem; border-top: 1px solid #334155; }
+        .input-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+        .input-text { font-size: 0.9rem; color: #94a3b8; background: #0f172a; border-radius: 8px; padding: 10px 14px; line-height: 1.6; }
+
+        /* ── Engine info ── */
+        .engine-info { background: #0f172a; border: 1px solid #1e3a8a; border-radius: 12px; padding: 1.2rem 1.5rem; font-size: 0.82rem; color: #64748b; text-align: center; line-height: 1.8; }
+        .engine-info span { color: #60a5fa; }
+
+        @media (max-width: 600px) {
+            .signal-grid { grid-template-columns: 1fr 1fr; }
+            .result-top { gap: 1rem; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
         <h1>🤖 AI Sentiment Analyzer</h1>
-        <p class="subtitle">Built by Wajiha Khan • Spring Boot</p>
-
-        <form method="post" action="/analyze">
-            <textarea name="text" placeholder="Paste any text (review, tweet, feedback...) here..." required></textarea><br>
-            <button type="submit">Analyze Sentiment</button>
-        </form>
-
-        <div class="result" th:if="${sentiment}" th:class="${sentiment}">
-            <h2 th:text="${sentiment}" style="margin-bottom: 15px;"></h2>
-            <p><strong>Confidence:</strong> <span th:text="${confidence}"></span>%</p>
-            <p><strong>Analyzed Text:</strong></p>
-            <p style="background: #0f172a; padding: 15px; border-radius: 8px; margin-top: 10px;" th:text="${text}"></p>
+        <p class="sub">
+            Built by <a href="https://linkedin.com/in/wajiha-yousafzai" target="_blank">Wajiha Khan</a>
+            &nbsp;·&nbsp; Java 21 · Spring Boot 3.3 · Rule-Based NLP Engine
+            &nbsp;·&nbsp; <a href="https://github.com/wajihayousafzai1-debug/sentiment-analyzer" target="_blank">GitHub</a>
+        </p>
+        <div class="engine-badges">
+            <span class="ebadge">120+ Lexicon Entries</span>
+            <span class="ebadge">Negation Detection</span>
+            <span class="ebadge">Intensity Amplifiers</span>
+            <span class="ebadge">Phrase Recognition</span>
+            <span class="ebadge">Emoji Signals</span>
+            <span class="ebadge">Explainable AI</span>
         </div>
     </div>
+
+    <!-- Form -->
+    <div class="form-card">
+        <form method="post" action="/analyze">
+            <textarea name="text" id="textInput"
+                placeholder="Paste any text — product review, tweet, customer feedback, email..."
+                th:text="${text}" required></textarea>
+            <div class="examples">
+                <span style="font-size:0.8rem;color:#475569;align-self:center">Try:</span>
+                <button type="button" class="ex-btn" onclick="setExample('I absolutely love this product! It works amazingly well and the support team is fantastic 😊')">Positive review</button>
+                <button type="button" class="ex-btn" onclick="setExample('This is terrible. The app crashes constantly and customer service never responds. Complete waste of money.')">Negative review</button>
+                <button type="button" class="ex-btn" onclick="setExample('The product arrived on time. It does what it says. Nothing special but not bad either.')">Mixed/Neutral</button>
+                <button type="button" class="ex-btn" onclick="setExample('Not bad at all! Could be better in some areas but I really enjoyed using it.')">Negation test</button>
+            </div>
+            <button type="submit" class="submit-btn">✨ Analyse Sentiment</button>
+        </form>
+    </div>
+
+    <!-- Result -->
+    <div class="result-card" th:if="${sentiment}"
+         th:classappend="${#strings.toLowerCase(sentiment)}">
+
+        <!-- Top: emoji + sentiment + intensity -->
+        <div class="result-top">
+            <div class="result-emoji" th:text="${emoji}">😐</div>
+            <div class="result-main">
+                <div class="result-sentiment" th:text="${sentiment}">Neutral</div>
+                <div class="result-intensity">
+                    <span th:text="${intensity}">Moderate</span> sentiment detected
+                </div>
+            </div>
+        </div>
+
+        <!-- Confidence bar -->
+        <div class="conf-section">
+            <div class="conf-label">
+                <span>Confidence</span>
+                <span th:text="${confidence + '%'}">75%</span>
+            </div>
+            <div class="conf-bar-wrap">
+                <div class="conf-bar" th:style="'width:' + ${confidence} + '%'"></div>
+            </div>
+        </div>
+
+        <!-- Signal grid -->
+        <div class="signal-grid">
+            <div class="signal-cell">
+                <div class="signal-label">Positive signals</div>
+                <div class="signal-val pos" th:text="${positiveSignals}">0</div>
+            </div>
+            <div class="signal-cell">
+                <div class="signal-label">Negative signals</div>
+                <div class="signal-val neg" th:text="${negativeSignals}">0</div>
+            </div>
+        </div>
+
+        <!-- Reasoning -->
+        <div class="reasoning-section">
+            <div class="reasoning-label">AI Reasoning</div>
+            <div class="reasoning-text" th:text="${reasoning}">No reasoning available.</div>
+        </div>
+
+        <!-- Input text -->
+        <div class="input-section">
+            <div class="input-label">Analysed text</div>
+            <div class="input-text" th:text="${text}"></div>
+        </div>
+    </div>
+
+    <!-- Engine info -->
+    <div class="engine-info">
+        <span>How it works:</span> Rule-based NLP engine scores each word using a 120+ entry lexicon (scores 1–3 by intensity).
+        Detects <span>negation</span> ("not good" → negative), <span>amplifiers</span> ("extremely bad" → 2× score),
+        <span>contextual phrases</span> ("could be better"), and <span>emoji signals</span>.
+        Every decision is <span>fully explainable</span> — no black box, no external API.
+    </div>
+
+</div>
+
+<script>
+function setExample(text) {
+    document.getElementById('textInput').value = text;
+}
+</script>
 </body>
 </html>
